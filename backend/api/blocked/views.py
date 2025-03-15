@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import validate_email
 from django.shortcuts import get_object_or_404
 from .models import User
+import json
 
 ERROR_MESSAGES = {
     'INVALID_USER_ID': 'Invalid userId format.',

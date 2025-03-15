@@ -1,10 +1,13 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from .autoCompletePrefixTree import globalPrefixTree, initPrefixTree, PrefixTree
+import json
 
 @csrf_exempt
+@require_POST
 def search(request):
-    if request.method == 'POST':
+    try:
         data = json.loads(request.body)
         query = data.get('query', '').lower()
         tree = PrefixTree()
@@ -12,4 +15,5 @@ def search(request):
             initPrefixTree()
         result = globalPrefixTree._search(query)
         return JsonResponse(result, safe=False)
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': 'Internal server error'}, status=500)

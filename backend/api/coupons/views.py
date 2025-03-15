@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils.dateparse import parse_date
 from .models import Coupon
+import json
 
 @require_http_methods(["GET"])
 def get_coupons(request):

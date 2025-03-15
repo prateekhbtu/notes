@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views import View
 from .models import User
+import json
 
 @method_decorator(csrf_exempt, name='dispatch')
 class SavePhoneView(View):

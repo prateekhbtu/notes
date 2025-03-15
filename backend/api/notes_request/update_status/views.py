@@ -2,6 +2,8 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.core.exceptions import ValidationError
 from bson import ObjectId
+from .models import RequestNotes
+import json
 
 @require_POST
 def update_request_status(request):
@@ -16,8 +18,6 @@ def update_request_status(request):
         if not ObjectId.is_valid(request_id):
             return JsonResponse({'error': 'Invalid request ID'}, status=400)
 
-        # Update the request status in the database
-        # Assuming you have a model named RequestNotes
         try:
             request_note = RequestNotes.objects.get(id=request_id)
             request_note.status = status

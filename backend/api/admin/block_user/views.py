@@ -5,6 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.shortcuts import get_object_or_404
 from .models import User
+import json
 
 @method_decorator(csrf_exempt, name='dispatch')
 class BlockUserView(View):

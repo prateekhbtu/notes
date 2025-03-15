@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import requests
+import json
 
 DJANGO_BACKEND_URL = "http://localhost:8000"
 

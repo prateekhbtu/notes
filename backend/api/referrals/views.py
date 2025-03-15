@@ -1,9 +1,8 @@
 from django.http import JsonResponse
 from django.views.decorators.http import require_GET
 from django.contrib.auth.decorators import login_required, user_passes_test
-import requests
-
-DJANGO_BACKEND_URL = "http://localhost:8000"
+from django.shortcuts import get_object_or_404
+from .models import Referral
 
 def is_admin(user):
     return user.is_authenticated and user.is_admin
@@ -13,10 +12,8 @@ def is_admin(user):
 @user_passes_test(is_admin)
 def get_referrals(request):
     try:
-        response = requests.get(f"{DJANGO_BACKEND_URL}/api/referrals/")
-        response.raise_for_status()
-        referrals = response.json()
-        return JsonResponse({"referrals": referrals})
-    except requests.RequestException as error:
+        referrals = Referral.objects.all().values()
+        return JsonResponse({"referrals": list(referrals)})
+    except Exception as error:
         print("Error fetching referrals for admin:", error)
         return JsonResponse({"error": "Failed to fetch referrals"}, status=500)
