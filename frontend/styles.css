@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles */
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.header {
+  @apply text-center py-6;
+}
+
+.hero-section {
+  @apply h-96 flex flex-col items-center justify-center bg-gray-100 rounded-md;
+}
+
+.animated-shiny-text {
+  @apply inline-flex items-center justify-center px-4 py-1 border rounded-full;
+}
+
+.hero-title {
+  @apply text-4xl font-bold py-2;
+}
+
+.hero-subtitle {
+  @apply text-lg;
+}
+
+.hero-button {
+  @apply group relative h-12 rounded-full border-2 border-purple-500 bg-gradient-to-r from-purple-700 to-blue-700 px-6 text-white;
+}
+
+.hero-button span {
+  @apply relative inline-flex overflow-hidden;
+}
+
+.hero-button div {
+  @apply translate-y-0 skew-y-0 transition duration-500 group-hover:-translate-y-full group-hover:skew-y-12;
+}
+
+.hero-button div.absolute {
+  @apply translate-y-full skew-y-12 transition duration-500 group-hover:translate-y-0 group-hover:skew-y-0;
+}
+
+.hero-rating {
+  @apply pl-4 py-4 text-xs text-gray-500 ml-4 text-left;
+}
