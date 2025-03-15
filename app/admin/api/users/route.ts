@@ -1,31 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCollection } from "@/lib/db";
+
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET(req: NextRequest) {
   try {
-    const usersCollection = await getCollection("users");
-
-    const users = await usersCollection
-      .find({})
-      .project({
-        name: 1,
-        email: 1,
-        planTier: 1,
-        razorpayDetails: 1,
-        university: 1,
-        degree: 1,
-        year: 1,
-        semesters: 1,
-        subscriptionStartDate: 1,
-        subscriptionEndDate: 1,
-        Blocked: 1,
-        phoneNumber: 1,
-        image: 1,
-      })
-      .toArray();
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/users/`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch users from Django backend");
+    }
+    const users = await response.json();
 
     return new NextResponse(JSON.stringify(users), {
       headers: {

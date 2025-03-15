@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getCollection } from "@/lib/db";
 import { ObjectId } from "mongodb";
 
 export const dynamic = "force-dynamic";
@@ -16,18 +15,18 @@ const ERROR_MESSAGES = {
 
 const ALLOWED_STATUSES = ["Pending", "In Progress", "Completed", "Rejected"];
 
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
+
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const statusFilter = url.searchParams.get("status");
 
-    const reportsCollection = await getCollection("reportNotes");
-    const query = statusFilter ? { status: statusFilter } : {};
-
-    const reports = await reportsCollection
-      .find(query)
-      .sort({ createdAt: -1 })
-      .toArray();
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/notes-reports/?status=${statusFilter || ''}`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch notes reports from Django backend");
+    }
+    const reports = await response.json();
 
     return new NextResponse(JSON.stringify(reports), {
       status: 200,
@@ -67,17 +66,16 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const reportsCollection = await getCollection("reportNotes");
-    const updateResult = await reportsCollection.updateOne(
-      { _id: new ObjectId(reportId) },
-      { $set: { status } }
-    );
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/update-report-status/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reportId, status }),
+    });
 
-    if (updateResult.matchedCount === 0) {
-      return NextResponse.json(
-        { error: ERROR_MESSAGES.REPORT_NOT_FOUND },
-        { status: 404 }
-      );
+    if (!response.ok) {
+      throw new Error("Failed to update report status in Django backend");
     }
 
     return new NextResponse(JSON.stringify({ success: true }), {

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import clientPromise from "@/lib/db";
-import { ObjectId } from "mongodb";
+
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 export async function POST(request: Request) {
   try {
@@ -81,70 +81,30 @@ export async function POST(request: Request) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db();
-
     const rupeesAmount = amount / 100;
 
-    const updateResult = await db.collection("users").updateOne(
-      { _id: new ObjectId(userId) },
-      {
-        $set: {
-          planTier: tier,
-          subscriptionStartDate: new Date(),
-          subscriptionEndDate: new Date(
-            new Date().setMonth(new Date().getMonth() + 8)
-          ),
-          university,
-          degree,
-          year,
-          semesters: [semester],
-          razorpayDetails: {
-            orderId: razorpay_order_id,
-            paymentId: razorpay_payment_id,
-            amount: rupeesAmount,
-          },
-        },
-      }
-    );
-
-    if (updateResult.modifiedCount === 0) {
-      console.error("User not found or update failed");
-      return NextResponse.json(
-        { error: "Failed to update subscription details" },
-        { status: 500 }
-      );
-    }
-
-    if (couponCode) {
-      await db.collection("coupons").updateOne(
-        { code: couponCode },
-        {
-          $inc: { usageCount: 1 },
-          $push: { usedBy: new ObjectId(userId) },
-        }
-      );
-    }
-
-    const paymentResult = await db.collection("payments").insertOne({
-      userId: new ObjectId(userId),
-      email: await db
-        .collection("users")
-        .findOne({ _id: new ObjectId(userId) }, { projection: { email: 1 } })
-        .then((user) => user?.email),
-      amount: rupeesAmount,
-      orderId: razorpay_order_id,
-      paymentId: razorpay_payment_id,
-      coupon: couponCode ? couponCode : null,
-      createdAt: new Date(),
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/verify-payment/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+        userId,
+        tier,
+        university,
+        degree,
+        year,
+        semester,
+        amount: rupeesAmount,
+        couponCode,
+      }),
     });
 
-    if (!paymentResult.insertedId) {
-      console.error("Failed to record payment");
-      return NextResponse.json(
-        { error: "Failed to record payment" },
-        { status: 500 }
-      );
+    if (!response.ok) {
+      throw new Error("Failed to verify payment in Django backend");
     }
 
     return NextResponse.json({ success: true });

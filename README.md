@@ -103,19 +103,17 @@ Here’s a brief overview of the folder structure:
 
 ```
 .
-├── app               # Application logic
-├── assets            # Static assets
-├── components        # Reusable components
-├── config            # Configuration files
-├── content           # MDX notes content
-├── hooks             # Custom React hooks
-├── lib               # Utility libraries
-├── public            # Public assets
-├── styles            # Global CSS and Tailwind setup
-├── utils             # Helper functions
-├── .vscode           # Editor settings
-├── package.json      # Project metadata and scripts
-├── README.md         # Project documentation
+├── frontend/app               # Application logic
+├── frontend/assets            # Static assets
+├── frontend/components        # Reusable components
+├── frontend/config            # Configuration files
+├── frontend/content           # MDX notes content
+├── frontend/hooks             # Custom React hooks
+├── frontend/lib               # Utility libraries
+├── frontend/public            # Public assets
+├── frontend/styles            # Global CSS and Tailwind setup
+├── frontend/utils             # Helper functions
+├── .vscode                    # Editor settings
+├── frontend/package.json      # Project metadata and scripts
+├── README.md                  # Project documentation
 ```
-
-

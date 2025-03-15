@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCollection } from "@/lib/db";
-import { ObjectId } from "mongodb";
+
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 export async function POST(request: Request) {
   try {
@@ -14,15 +14,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid request ID" }, { status: 400 });
     }
 
-    const requestNotesCollection = await getCollection("requestNotes");
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/update-request-status/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ requestId, status }),
+    });
 
-    const updateResult = await requestNotesCollection.updateOne(
-      { _id: new ObjectId(requestId) },
-      { $set: { status } }
-    );
-
-    if (updateResult.modifiedCount === 0) {
-      return NextResponse.json({ error: "Request not found or already updated" }, { status: 404 });
+    if (!response.ok) {
+      throw new Error("Failed to update request status in Django backend");
     }
 
     return NextResponse.json({ success: true });

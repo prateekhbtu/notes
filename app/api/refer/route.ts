@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 export async function GET(request: Request) {
   const session = await getServerSession(authOptions);
@@ -16,8 +17,11 @@ export async function GET(request: Request) {
   }
   const userId = session.user.id;
   try {
-    const referralsCollection = await getCollection("referrals");
-    const referral = await referralsCollection.findOne({ userId: new ObjectId(userId) });
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/referral/${userId}/`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch referral from Django backend");
+    }
+    const referral = await response.json();
     return NextResponse.json({ referral });
   } catch (error) {
     console.error("Error fetching referral:", error);
@@ -34,38 +38,24 @@ export async function POST(request: Request) {
   const referrerName = session.user.name;
   const referrerEmail = session.user.email;
   try {
-    const referralsCollection = await getCollection("referrals");
-    const existingReferral = await referralsCollection.findOne({ userId: new ObjectId(userId) });
-    if (existingReferral) {
-      return NextResponse.json({ error: "Referral code already created" }, { status: 400 });
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/create-referral/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        userId,
+        referrerName,
+        referrerEmail,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create referral code in Django backend");
     }
 
-    const couponCode = referrerName.replace(/\s+/g, "").toUpperCase() + userId.slice(-4).toUpperCase() + "NB";
-    const createdAt = new Date();
-    const expiryDate = new Date(createdAt.getTime() + 30 * MS_PER_DAY);
-    const newReferral = {
-      userId: new ObjectId(userId),
-      referrerName,
-      referrerEmail,
-      couponCode,
-      minRedemption: 3,
-      maxRedemption: 10,
-      redeemedBy: [] as {
-        userId: ObjectId;
-        name: string;
-        email: string;
-        redeemedAt: Date;
-      }[],
-      createdAt,
-      expiryDate,
-      invalidated: false,
-    };
-    const result = await referralsCollection.insertOne(newReferral);
-    if (!result.insertedId) {
-      return NextResponse.json({ error: "Failed to create referral code" }, { status: 500 });
-    }
-    (newReferral as any)._id = result.insertedId;
-    return NextResponse.json({ referral: newReferral });
+    const referral = await response.json();
+    return NextResponse.json({ referral });
   } catch (error) {
     console.error("Error creating referral code:", error);
     return NextResponse.json({ error: "Failed to create referral code" }, { status: 500 });

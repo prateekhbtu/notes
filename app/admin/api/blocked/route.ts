@@ -10,15 +10,15 @@ const ERROR_MESSAGES = {
   FETCH_ERROR: "Failed to fetch blocked users.",
 };
 
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
+
 export async function GET(req: NextRequest) {
   try {
-    const usersCollection = await getCollection("users");
-
-    const blockedUsers = await usersCollection
-      .find({ Blocked: true })
-      .project({ name: 1, email: 1, Blocked: 1 })
-      .toArray();
-
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/blocked-users/`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch blocked users from Django backend");
+    }
+    const blockedUsers = await response.json();
     return NextResponse.json(blockedUsers);
   } catch (error) {
     console.error(ERROR_MESSAGES.FETCH_ERROR, error);
@@ -48,18 +48,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const usersCollection = await getCollection("users");
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/update-user-status/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, action }),
+    });
 
-    const updateResult = await usersCollection.updateOne(
-      { _id: new ObjectId(userId) },
-      { $set: { Blocked: action === "block" } }
-    );
-
-    if (updateResult.modifiedCount === 0) {
-      return NextResponse.json(
-        { error: ERROR_MESSAGES.USER_NOT_FOUND },
-        { status: 404 }
-      );
+    if (!response.ok) {
+      throw new Error("Failed to update user status in Django backend");
     }
 
     return NextResponse.json({ success: true });
