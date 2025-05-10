@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notes Buddy</title>
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mx-auto px-4">
+        <header class="text-center py-6">
+            <h1 class="text-4xl font-bold">Notes Buddy</h1>
+            <p class="text-lg">Prepare Fast, Study Smart</p>
+        </header>
+        <main>
+            <section class="hero-section h-96 flex flex-col items-center justify-center bg-gray-100 rounded-md">
+                <div class="text-center space-y-2">
+                    <div class="animated-shiny-text inline-flex items-center justify-center px-4 py-1 border rounded-full">
+                        <span class="text-xs md:text-base">✨ Welcome to Notes buddy</span>
+                    </div>
+                    <h1 class="text-4xl font-bold py-2">
+                        Prepare Fast
+                        <br />
+                        Study Smart <span class="text-white">😎</span>
+                    </h1>
+                    <div class="text-lg">
+                        Notes Buddy is your one stop solution for <span class="font-bold">Notes</span>
+                    </div>
+                </div>
+                <div class="pt-20 flex flex-col md:flex-row items-center justify-between w-full space-y-6">
+                    <div class="w-1/2 flex items-center justify-center">
+                        <button class="group relative h-12 rounded-full border-2 border-purple-500 bg-gradient-to-r from-purple-700 to-blue-700 px-6 text-white">
+                            <span class="relative inline-flex overflow-hidden">
+                                <div class="translate-y-0 skew-y-0 transition duration-500 group-hover:-translate-y-full group-hover:skew-y-12">
+                                    <a href="/notes">Read Notes</a>
+                                </div>
+                                <div class="absolute translate-y-full skew-y-12 transition duration-500 group-hover:translate-y-0 group-hover:skew-y-0">
+                                    <a href="/notes">Read Notes</a>
+                                </div>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="w-1/2 flex flex-col md:flex-row items-center justify-center py-4">
+                        <span class="pl-4 py-4 text-xs text-gray-500 ml-4 text-left">
+                            Rated by hundreds of students. Loved by many.
+                        </span>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="scripts.js"></script>
+</body>
+</html>

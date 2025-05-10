@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { getCollection } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -12,11 +13,11 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
   try {
-    const referralsCollection = await getCollection("referrals");
-    const referrals = await referralsCollection
-      .find({})
-      .sort({ createdAt: -1 })
-      .toArray();
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/referrals/`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch referrals from Django backend");
+    }
+    const referrals = await response.json();
     return NextResponse.json({ referrals });
   } catch (error) {
     console.error("Error fetching referrals for admin:", error);

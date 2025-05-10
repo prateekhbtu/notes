@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Card</title>
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mx-auto px-4">
+        <header class="text-center py-6">
+            <h1 class="text-4xl font-bold">Group Card</h1>
+        </header>
+        <main>
+            <section class="group-card-section bg-gray-100 rounded-md p-6">
+                <div class="group-card-header flex items-center justify-between">
+                    <h2 class="text-2xl font-bold">Group Name</h2>
+                    <button class="group relative h-10 rounded-full border-2 border-purple-500 bg-gradient-to-r from-purple-700 to-blue-700 px-4 text-white">
+                        <span class="relative inline-flex overflow-hidden">
+                            <div class="translate-y-0 skew-y-0 transition duration-500 group-hover:-translate-y-full group-hover:skew-y-12">
+                                <a href="/group/edit">Edit Group</a>
+                            </div>
+                            <div class="absolute translate-y-full skew-y-12 transition duration-500 group-hover:translate-y-0 group-hover:skew-y-0">
+                                <a href="/group/edit">Edit Group</a>
+                            </div>
+                        </span>
+                    </button>
+                </div>
+                <div class="group-card-content mt-4">
+                    <p class="text-lg">Group Description</p>
+                </div>
+                <div class="group-card-footer mt-6 flex items-center justify-between">
+                    <span class="text-sm text-gray-500">Created on: <span class="font-bold">Date</span></span>
+                    <button class="group relative h-10 rounded-full border-2 border-red-500 bg-gradient-to-r from-red-700 to-orange-700 px-4 text-white">
+                        <span class="relative inline-flex overflow-hidden">
+                            <div class="translate-y-0 skew-y-0 transition duration-500 group-hover:-translate-y-full group-hover:skew-y-12">
+                                <a href="/group/delete">Delete Group</a>
+                            </div>
+                            <div class="absolute translate-y-full skew-y-12 transition duration-500 group-hover:translate-y-0 group-hover:skew-y-0">
+                                <a href="/group/delete">Delete Group</a>
+                            </div>
+                        </span>
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="scripts.js"></script>
+</body>
+</html>

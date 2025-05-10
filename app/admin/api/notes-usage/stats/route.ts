@@ -1,38 +1,36 @@
 import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/db";
-import NoteUsage from "@/models/NoteUsage";
+
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  await connectToDatabase();
-
-  const totalUsageRecords = await NoteUsage.countDocuments({});
-  const distinctSlugs = await NoteUsage.distinct("noteSlug");
-
-  const [top] = await NoteUsage.aggregate([
-    { $group: { _id: "$noteSlug", count: { $sum: 1 } } },
-    { $sort: { count: -1 } },
-    { $limit: 1 },
-  ]);
-
-  return new NextResponse(
-    JSON.stringify({
-      totalUsageRecords,
-      distinctSlugs: distinctSlugs.length,
-      topSlug: top?._id ?? null,
-      topCount: top?.count ?? 0,
-    }),
-    {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        "Cache-Control":
-          "no-store, no-cache, must-revalidate, proxy-revalidate",
-        Expires: "0",
-        Pragma: "no-cache",
-      },
+  try {
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/notes-usage-stats/`);
+    if (!response.ok) {
+      throw new Error("Failed to fetch notes usage stats from Django backend");
     }
-  );
+    const stats = await response.json();
+
+    return new NextResponse(
+      JSON.stringify(stats),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control":
+            "no-store, no-cache, must-revalidate, proxy-revalidate",
+          Expires: "0",
+          Pragma: "no-cache",
+        },
+      }
+    );
+  } catch (error) {
+    console.error("Failed to fetch notes usage stats:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch notes usage stats" },
+      { status: 500 }
+    );
+  }
 }

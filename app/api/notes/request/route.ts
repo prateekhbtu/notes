@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getCollection } from "@/lib/db";
 import { ObjectId } from "mongodb";
 
 // Constants for error messages and status codes
@@ -14,10 +13,7 @@ const ERROR_MESSAGES = {
 };
 const SUCCESS_MESSAGE = "Request successfully updated.";
 
-// Utility function for validating ObjectId
-function isValidObjectId(id: string): boolean {
-  return ObjectId.isValid(id);
-}
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 // POST: Create a new notes request
 export async function POST(request: Request) {
@@ -58,43 +54,33 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!isValidObjectId(userId)) {
+    if (!ObjectId.isValid(userId)) {
       return NextResponse.json(
         { error: ERROR_MESSAGES.INVALID_USER_ID },
         { status: 400 }
       );
     }
 
-    const usersCollection = await getCollection("users");
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: ERROR_MESSAGES.USER_NOT_FOUND },
-        { status: 404 }
-      );
-    }
-
-    if (user.BLOCKED === true) {
-      return NextResponse.json(
-        { error: ERROR_MESSAGES.USER_BLOCKED },
-        { status: 403 }
-      );
-    }
-
-    const requestNotesCollection = await getCollection("requestNotes");
-    await requestNotesCollection.insertOne({
-      university,
-      degree,
-      year,
-      semester,
-      subject,
-      syllabus,
-      phoneNumber,
-      userId,
-      createdAt: new Date(),
-      status: "Pending", // Default status for new requests
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/create-notes-request/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        university,
+        degree,
+        year,
+        semester,
+        subject,
+        syllabus,
+        phoneNumber,
+        userId,
+      }),
     });
+
+    if (!response.ok) {
+      throw new Error("Failed to create notes request in Django backend");
+    }
 
     return NextResponse.json({ message: SUCCESS_MESSAGE }, { status: 200 });
   } catch (error) {
@@ -126,17 +112,16 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const requestNotesCollection = await getCollection("requestNotes");
-    const updateResult = await requestNotesCollection.updateOne(
-      { _id: new ObjectId(requestId) },
-      { $set: { status } }
-    );
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/update-request-status/`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ requestId, status }),
+    });
 
-    if (updateResult.matchedCount === 0) {
-      return NextResponse.json(
-        { error: "Request not found." },
-        { status: 404 }
-      );
+    if (!response.ok) {
+      throw new Error("Failed to update request status in Django backend");
     }
 
     return NextResponse.json({ success: true }, { status: 200 });

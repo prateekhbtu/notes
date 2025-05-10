@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { getCollection } from "@/lib/db";
-import { ObjectId } from "mongodb";
+
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 export async function POST(request: Request) {
   try {
@@ -14,32 +14,24 @@ export async function POST(request: Request) {
       );
     }
 
-    const usersCollection = await getCollection("users");
-    const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
-
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
-
-    if (user.Blocked) {
-      return NextResponse.json(
-        { error: "You are blocked by an admin and cannot submit reports." },
-        { status: 403 }
-      );
-    }
-
-    const reportsCollection = await getCollection("reportNotes");
-
-    await reportsCollection.insertOne({
-      noteUrl,
-      issue,
-      otherText,
-      userId,
-      userName,
-      userEmail,
-      createdAt: new Date(),
-      status: "Pending",
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/report-notes/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        noteUrl,
+        issue,
+        otherText,
+        userId,
+        userName,
+        userEmail,
+      }),
     });
+
+    if (!response.ok) {
+      throw new Error("Failed to submit report notes to Django backend");
+    }
 
     return NextResponse.json({ message: "Report submitted successfully" });
   } catch (error) {

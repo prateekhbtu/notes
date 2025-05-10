@@ -1,8 +1,6 @@
-// app/api/compiler/route.ts
 import { NextResponse } from 'next/server';
 
-const JUDGE0_API_URL = 'https://judge0-ce.p.rapidapi.com';
-const JUDGE0_API_KEY = process.env.JUDGE0_API_KEY;
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 const LANGUAGE_MAP: { [key: string]: number } = {
   c: 50,
@@ -16,12 +14,10 @@ export async function POST(req: Request) {
   const { code, language } = await req.json();
   
   try {
-    const response = await fetch(`${JUDGE0_API_URL}/submissions`, {
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/execute-code/`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-RapidAPI-Key': JUDGE0_API_KEY!,
-        'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
       },
       body: JSON.stringify({
         source_code: code,
@@ -31,15 +27,7 @@ export async function POST(req: Request) {
       })
     });
 
-    const submission = await response.json();
-    const result = await fetch(`${JUDGE0_API_URL}/submissions/${submission.token}`, {
-      headers: {
-        'X-RapidAPI-Key': JUDGE0_API_KEY!,
-        'X-RapidAPI-Host': 'judge0-ce.p.rapidapi.com'
-      }
-    });
-
-    const data = await result.json();
+    const data = await response.json();
     return NextResponse.json({
       output: data.stdout || data.stderr || data.message,
       status: data.status?.description

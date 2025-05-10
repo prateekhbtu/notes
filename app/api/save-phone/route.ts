@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import clientPromise from "@/lib/db";
-import { ObjectId } from "mongodb";
+
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
 
 export async function POST(request: Request) {
   try {
@@ -14,18 +14,16 @@ export async function POST(request: Request) {
       );
     }
 
-    const client = await clientPromise;
-    const db = client.db();
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/save-phone/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, phoneNumber }),
+    });
 
-    const updateResult = await db
-      .collection("users")
-      .updateOne({ _id: new ObjectId(userId) }, { $set: { phoneNumber } });
-
-    if (updateResult.modifiedCount === 0) {
-      return NextResponse.json(
-        { error: "Failed to update phone number" },
-        { status: 500 }
-      );
+    if (!response.ok) {
+      throw new Error("Failed to save phone number in Django backend");
     }
 
     return NextResponse.json({

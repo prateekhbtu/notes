@@ -7,6 +7,8 @@ import { ObjectId } from "mongodb";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const DJANGO_BACKEND_URL = process.env.DJANGO_BACKEND_URL;
+
 export async function POST(request: Request) {
   const session = await getServerSession(authOptions);
   if (
@@ -29,65 +31,25 @@ export async function POST(request: Request) {
     );
   }
   try {
-    const referralsCollection = await getCollection("referrals");
-    const referral = await referralsCollection.findOne({ couponCode });
-    if (!referral) {
-      return NextResponse.json(
-        { error: "Referral code not found" },
-        { status: 404 }
-      );
-    }
-    if (referral.userId.toString() === refereeId) {
-      return NextResponse.json(
-        { error: "You cannot redeem your own referral code" },
-        { status: 400 }
-      );
-    }
-
-    const alreadyRedeemed = await referralsCollection.findOne({
-      "redeemedBy.userId": new ObjectId(refereeId),
-    });
-    if (alreadyRedeemed) {
-      return NextResponse.json(
-        { error: "You have already redeemed a referral code" },
-        { status: 400 }
-      );
-    }
-    if (referral.invalidated || new Date() > new Date(referral.expiryDate)) {
-      return NextResponse.json(
-        { error: "Referral code is expired or invalid" },
-        { status: 400 }
-      );
-    }
-   
-    if (referral.redeemedBy.length >= referral.maxRedemption) {
-      return NextResponse.json(
-        { error: "Referral redemption limit reached" },
-        { status: 400 }
-      );
-    }
-
-    const updated = await referralsCollection.findOneAndUpdate(
-      { _id: referral._id },
-      {
-        $push: {
-          redeemedBy: {
-            userId: new ObjectId(refereeId),
-            name: refereeName,
-            email: refereeEmail,
-            redeemedAt: new Date(),
-          },
-        } as any,
+    const response = await fetch(`${DJANGO_BACKEND_URL}/api/redeem-referral-code/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-      { returnDocument: "after" }
-    );
-    if (!updated.value) {
-      return NextResponse.json(
-        { error: "Failed to redeem referral code" },
-        { status: 500 }
-      );
+      body: JSON.stringify({
+        refereeId,
+        refereeName,
+        refereeEmail,
+        couponCode,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to redeem referral code in Django backend");
     }
-    return NextResponse.json({ success: true, referral: updated.value });
+
+    const data = await response.json();
+    return NextResponse.json({ success: true, referral: data });
   } catch (error) {
     console.error("Error redeeming referral code:", error);
     return NextResponse.json(
